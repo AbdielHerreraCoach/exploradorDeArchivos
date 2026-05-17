@@ -87,23 +87,50 @@ namespace exploradorDeArchivos
                 else
                 {
                     // --- LÓGICA PARA ARCHIVOS ---
-                    try
-                    {
-                        // Configuramos el proceso para abrir el archivo
-                        System.Diagnostics.ProcessStartInfo infoApertura = new System.Diagnostics.ProcessStartInfo();
-                        infoApertura.FileName = ruta;
 
-                        // UseShellExecute en 'true' es vital. Le dice a tu programa que deje 
-                        // que el sistema operativo decida con qué aplicación abrir el archivo.
-                        infoApertura.UseShellExecute = true;
+                    // 1. Obtenemos la extensión del archivo y la pasamos a minúsculas (.csv, .txt, etc.)
+                    string extension = System.IO.Path.GetExtension(ruta).ToLower();
 
-                        // Ejecutamos el archivo
-                        System.Diagnostics.Process.Start(infoApertura);
-                    }
-                    catch (Exception ex)
+                    // 2. Evaluamos la extensión con un switch
+                    switch (extension)
                     {
-                        // Por si el archivo está corrupto o Windows no sabe con qué abrirlo
-                        MessageBox.Show("No se pudo abrir el archivo: " + ex.Message, "Error al abrir", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        case ".csv":
+                            CSVProcessor.Form1 visorCsv = new CSVProcessor.Form1(ruta);
+                            visorCsv.Show();
+                            break;
+
+                        case ".txt":
+                            TxtProcessor.MainForm visorTxt = new TxtProcessor.MainForm(ruta);
+                            visorTxt.Show();
+                            break;
+
+                        case ".json":
+                            Jsonprocessor.MainForm visorJson = new Jsonprocessor.MainForm(ruta);
+                            visorJson.Show();
+                            break;
+
+                        // --- NUEVO CASO PARA XML ---
+                        case ".xml":
+                            // Llamamos explícitamente a través del namespace del procesador XML
+                            XMLProcessor.Form1 visorXml = new XMLProcessor.Form1(ruta);
+
+                            // Se muestra como ventana flotante por encima de la lista de archivos
+                            visorXml.Show();
+                            break;
+
+                        default:
+                            try
+                            {
+                                System.Diagnostics.ProcessStartInfo infoApertura = new System.Diagnostics.ProcessStartInfo();
+                                infoApertura.FileName = ruta;
+                                infoApertura.UseShellExecute = true;
+                                System.Diagnostics.Process.Start(infoApertura);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show("No se pudo abrir el archivo: " + ex.Message, "Error al abrir", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                            break;
                     }
                 }
             }

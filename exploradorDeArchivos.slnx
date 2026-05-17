@@ -1,3 +1,7 @@
 <Solution>
+  <Project Path="../CSVProcessor/CSVProcessor/CSVProcessor.csproj" />
+  <Project Path="../Jsonprocessor/Jsonprocessor/Jsonprocessor.csproj" />
+  <Project Path="../TxtProcessor/TxtProcessor/TxtProcessor.csproj" />
+  <Project Path="../XMLProcessor/XMLProcessor/XMLProcessor.csproj" />
   <Project Path="exploradorDeArchivos/exploradorDeArchivos.csproj" />
 </Solution>

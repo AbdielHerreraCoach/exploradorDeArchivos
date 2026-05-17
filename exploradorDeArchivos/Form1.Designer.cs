@@ -56,7 +56,7 @@
             btnIr.Name = "btnIr";
             btnIr.Size = new Size(75, 23);
             btnIr.TabIndex = 1;
-            btnIr.Text = "button1";
+            btnIr.Text = "*Lupa*";
             btnIr.UseVisualStyleBackColor = true;
             btnIr.Click += btnIr_Click;
             // 
@@ -143,7 +143,7 @@
             btnContar.Name = "btnContar";
             btnContar.Size = new Size(75, 23);
             btnContar.TabIndex = 5;
-            btnContar.Text = "button1";
+            btnContar.Text = "Contar";
             btnContar.UseVisualStyleBackColor = true;
             btnContar.Click += btnContar_Click;
             // 
