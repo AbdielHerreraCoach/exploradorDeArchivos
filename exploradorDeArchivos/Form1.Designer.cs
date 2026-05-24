@@ -41,22 +41,25 @@
             btnAtras = new Button();
             cmbVistas = new ComboBox();
             btnContar = new Button();
+            treeNavegacion = new TreeView();
+            imgNavegacion = new ImageList(components);
             SuspendLayout();
             // 
             // txtRuta
             // 
-            txtRuta.Location = new Point(57, 12);
+            txtRuta.Location = new Point(196, 12);
             txtRuta.Name = "txtRuta";
             txtRuta.Size = new Size(245, 23);
             txtRuta.TabIndex = 0;
             // 
             // btnIr
             // 
-            btnIr.Location = new Point(308, 12);
+            btnIr.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnIr.Location = new Point(447, 10);
             btnIr.Name = "btnIr";
-            btnIr.Size = new Size(75, 23);
+            btnIr.Size = new Size(32, 26);
             btnIr.TabIndex = 1;
-            btnIr.Text = "*Lupa*";
+            btnIr.Text = "🔍";
             btnIr.UseVisualStyleBackColor = true;
             btnIr.Click += btnIr_Click;
             // 
@@ -64,9 +67,9 @@
             // 
             listViewArchivos.Columns.AddRange(new ColumnHeader[] { Nombre, Tipo, Ruta });
             listViewArchivos.LargeImageList = imgListGrandes;
-            listViewArchivos.Location = new Point(57, 41);
+            listViewArchivos.Location = new Point(139, 41);
             listViewArchivos.Name = "listViewArchivos";
-            listViewArchivos.Size = new Size(731, 397);
+            listViewArchivos.Size = new Size(649, 397);
             listViewArchivos.SmallImageList = imgListPequeños;
             listViewArchivos.TabIndex = 2;
             listViewArchivos.UseCompatibleStateImageBehavior = false;
@@ -118,11 +121,12 @@
             // 
             // btnAtras
             // 
-            btnAtras.Location = new Point(12, 11);
+            btnAtras.Font = new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnAtras.Location = new Point(151, 11);
             btnAtras.Name = "btnAtras";
             btnAtras.Size = new Size(39, 23);
             btnAtras.TabIndex = 3;
-            btnAtras.Text = "<-";
+            btnAtras.Text = "🠔";
             btnAtras.UseVisualStyleBackColor = true;
             btnAtras.Click += btnAtras_Click;
             // 
@@ -131,7 +135,7 @@
             cmbVistas.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbVistas.FormattingEnabled = true;
             cmbVistas.Items.AddRange(new object[] { "Detalles", "Iconos Grandes", "Iconos Pequeños", "Lista" });
-            cmbVistas.Location = new Point(389, 11);
+            cmbVistas.Location = new Point(528, 11);
             cmbVistas.Name = "cmbVistas";
             cmbVistas.Size = new Size(121, 23);
             cmbVistas.TabIndex = 4;
@@ -139,7 +143,7 @@
             // 
             // btnContar
             // 
-            btnContar.Location = new Point(516, 10);
+            btnContar.Location = new Point(655, 10);
             btnContar.Name = "btnContar";
             btnContar.Size = new Size(75, 23);
             btnContar.TabIndex = 5;
@@ -147,11 +151,35 @@
             btnContar.UseVisualStyleBackColor = true;
             btnContar.Click += btnContar_Click;
             // 
+            // treeNavegacion
+            // 
+            treeNavegacion.BorderStyle = BorderStyle.None;
+            treeNavegacion.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            treeNavegacion.ItemHeight = 30;
+            treeNavegacion.Location = new Point(12, 41);
+            treeNavegacion.Name = "treeNavegacion";
+            treeNavegacion.ShowLines = false;
+            treeNavegacion.Size = new Size(121, 397);
+            treeNavegacion.TabIndex = 7;
+            treeNavegacion.AfterSelect += treeNavegacion_AfterSelect;
+            // 
+            // imgNavegacion
+            // 
+            imgNavegacion.ColorDepth = ColorDepth.Depth32Bit;
+            imgNavegacion.ImageStream = (ImageListStreamer)resources.GetObject("imgNavegacion.ImageStream");
+            imgNavegacion.TransparentColor = Color.Transparent;
+            imgNavegacion.Images.SetKeyName(0, "pantala.png");
+            imgNavegacion.Images.SetKeyName(1, "45162.png");
+            imgNavegacion.Images.SetKeyName(2, "canva-document-icon-MAB_htUUeMk.png");
+            imgNavegacion.Images.SetKeyName(3, "image_icon_153794.png");
+            imgNavegacion.Images.SetKeyName(4, "canva-musical-note-MAD38rw6Ees.png");
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(treeNavegacion);
             Controls.Add(btnContar);
             Controls.Add(cmbVistas);
             Controls.Add(btnAtras);
@@ -178,5 +206,7 @@
         private ComboBox cmbVistas;
         private ImageList imgListGrandes;
         private Button btnContar;
+        private TreeView treeNavegacion;
+        private ImageList imgNavegacion;
     }
 }

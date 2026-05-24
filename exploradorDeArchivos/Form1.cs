@@ -9,9 +9,68 @@ namespace exploradorDeArchivos
         public Form1()
         {
             InitializeComponent();
+
             // Opcional: Cargar el disco C por defecto al arrancar el programa
             txtRuta.Text = @"C:\";
             CargarDirectorio(txtRuta.Text);
+            ConfigurarPanelNavegacion();
+        }
+
+        private void ConfigurarPanelNavegacion()
+        {
+            treeNavegacion.ImageList = imgNavegacion;
+
+            treeNavegacion.Nodes.Clear();
+
+            // --- 2. DISEÑO DE TEXTO (FUENTE) ---
+            // Creamos una fuente estilo Windows 10/11
+            Font fuenteNodos = new Font("Segoe UI", 10F, FontStyle.Regular);
+
+            // --- 3. CREACIÓN Y ESTILO DE NODOS ---
+
+            // ESCRITORIO
+            TreeNode nodoEscritorio = new TreeNode(" Escritorio"); // Espacio extra para separar del icono
+            nodoEscritorio.Tag = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            nodoEscritorio.NodeFont = fuenteNodos;
+            nodoEscritorio.ImageIndex = 0; // Usa la imagen 0 de tu imgListPequeños (Carpeta)
+            nodoEscritorio.SelectedImageIndex = 0;
+
+            // DOCUMENTOS
+            TreeNode nodoDocumentos = new TreeNode(" Documentos");
+            nodoDocumentos.Tag = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            nodoDocumentos.NodeFont = fuenteNodos;
+            nodoDocumentos.ImageIndex = 2;
+            nodoDocumentos.SelectedImageIndex = 2;
+
+            // MÚSICA
+            TreeNode nodoMusica = new TreeNode(" Música");
+            nodoMusica.Tag = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+            nodoMusica.NodeFont = fuenteNodos;
+            // Si tuviéramos un icono de música en el índice 3, lo pondríamos así:
+            nodoMusica.ImageIndex = 4;
+            nodoMusica.SelectedImageIndex = 4;
+
+            // IMÁGENES
+            TreeNode nodoImagenes = new TreeNode(" Imágenes");
+            nodoImagenes.Tag = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            nodoImagenes.NodeFont = fuenteNodos;
+            nodoImagenes.ImageIndex = 3; // Índice de imagen en tu imgListPequeños
+            nodoImagenes.SelectedImageIndex = 3;
+
+            // DESCARGAS
+            TreeNode nodoDescargas = new TreeNode(" Descargas");
+            string rutaUsuario = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            nodoDescargas.Tag = System.IO.Path.Combine(rutaUsuario, "Downloads");
+            nodoDescargas.NodeFont = fuenteNodos;
+            nodoDescargas.ImageIndex = 1;
+            nodoDescargas.SelectedImageIndex = 1;
+
+            // Agregamos todo al árbol
+            treeNavegacion.Nodes.Add(nodoEscritorio);
+            treeNavegacion.Nodes.Add(nodoDescargas);
+            treeNavegacion.Nodes.Add(nodoDocumentos);
+            treeNavegacion.Nodes.Add(nodoImagenes);
+            treeNavegacion.Nodes.Add(nodoMusica);
         }
 
         // Este es el método principal de esta fase
@@ -261,6 +320,22 @@ namespace exploradorDeArchivos
                             "Resultado de Recursividad",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
+        }
+
+        private void treeNavegacion_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            // Verificamos que el nodo tenga una ruta guardada en su Tag
+            if (e.Node.Tag != null)
+            {
+                // Extraemos la ruta
+                string rutaSeleccionada = e.Node.Tag.ToString();
+
+                // Actualizamos tu barra de direcciones superior
+                txtRuta.Text = rutaSeleccionada;
+
+                // Llamamos a la función que ya construiste para leer y mostrar los archivos
+                CargarDirectorio(rutaSeleccionada);
+            }
         }
     }
 }
