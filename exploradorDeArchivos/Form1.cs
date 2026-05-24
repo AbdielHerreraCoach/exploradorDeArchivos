@@ -14,8 +14,24 @@ namespace exploradorDeArchivos
             txtRuta.Text = @"C:\";
             CargarDirectorio(txtRuta.Text);
             ConfigurarPanelNavegacion();
+            ConfigurarMenuContextual();
         }
+        // Variables globales para el menú contextual
+        private ContextMenuStrip menuContextual;
+        private ToolStripMenuItem menuAbrir;
+        private ToolStripMenuItem menuNuevaCarpeta;
+        private ToolStripMenuItem menuRenombrar;
+        private ToolStripMenuItem menuEliminar;
+        private ToolStripMenuItem menuPropiedades;
 
+        // Nuestro portapapeles interno
+        private string rutaPortapapeles = "";
+        private bool esOperacionCortar = false;
+
+        // Los nuevos botones del menú
+        private ToolStripMenuItem menuCopiar;
+        private ToolStripMenuItem menuCortar;
+        private ToolStripMenuItem menuPegar;
         private void ConfigurarPanelNavegacion()
         {
             treeNavegacion.ImageList = imgNavegacion;
@@ -71,6 +87,365 @@ namespace exploradorDeArchivos
             treeNavegacion.Nodes.Add(nodoDocumentos);
             treeNavegacion.Nodes.Add(nodoImagenes);
             treeNavegacion.Nodes.Add(nodoMusica);
+        }
+
+        private void ConfigurarMenuContextual()
+        {
+            menuContextual = new ContextMenuStrip();
+
+            menuAbrir = new ToolStripMenuItem("Abrir");
+            menuCopiar = new ToolStripMenuItem("Copiar");
+            menuCortar = new ToolStripMenuItem("Cortar");
+            menuPegar = new ToolStripMenuItem("Pegar");
+            menuNuevaCarpeta = new ToolStripMenuItem("Nueva carpeta");
+            menuRenombrar = new ToolStripMenuItem("Renombrar");
+            menuEliminar = new ToolStripMenuItem("Eliminar");
+            menuPropiedades = new ToolStripMenuItem("Propiedades");
+
+            // Agregamos en un orden lógico (como en Windows)
+            menuContextual.Items.Add(menuAbrir);
+            menuContextual.Items.Add(new ToolStripSeparator());
+            menuContextual.Items.Add(menuCopiar);
+            menuContextual.Items.Add(menuCortar);
+            menuContextual.Items.Add(menuPegar);
+            menuContextual.Items.Add(new ToolStripSeparator());
+            menuContextual.Items.Add(menuNuevaCarpeta);
+            menuContextual.Items.Add(menuRenombrar);
+            menuContextual.Items.Add(menuEliminar);
+            menuContextual.Items.Add(new ToolStripSeparator());
+            menuContextual.Items.Add(menuPropiedades);
+
+            listViewArchivos.ContextMenuStrip = menuContextual;
+
+            // Conectamos los eventos
+            menuContextual.Opening += MenuContextual_Opening;
+            menuAbrir.Click += MenuAbrir_Click;
+            menuNuevaCarpeta.Click += MenuNuevaCarpeta_Click;
+            menuRenombrar.Click += MenuRenombrar_Click;
+            menuEliminar.Click += MenuEliminar_Click;
+            menuPropiedades.Click += MenuPropiedades_Click;
+
+            // Conectamos los eventos del portapapeles
+            menuCopiar.Click += MenuCopiar_Click;
+            menuCortar.Click += MenuCortar_Click;
+            menuPegar.Click += MenuPegar_Click;
+        }
+        private void MenuContextual_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            bool haySeleccion = listViewArchivos.SelectedItems.Count > 0;
+
+            menuAbrir.Enabled = haySeleccion;
+            menuRenombrar.Enabled = haySeleccion;
+            menuEliminar.Enabled = haySeleccion;
+            menuPropiedades.Enabled = haySeleccion;
+
+            // Lógica del portapapeles
+            menuCopiar.Enabled = haySeleccion;
+            menuCortar.Enabled = haySeleccion;
+
+            // Solo activamos Pegar si nuestra variable de memoria no está vacía
+            menuPegar.Enabled = !string.IsNullOrEmpty(rutaPortapapeles);
+
+            menuNuevaCarpeta.Enabled = true;
+        }
+
+        private void MenuAbrir_Click(object sender, EventArgs e)
+        {
+            // Simplemente llamamos a la función del doble clic que ya tienes hecha.
+            // Le mandamos (null, null) porque esa función en realidad no usa esos parámetros internos.
+            listViewArchivos_DoubleClick(null, null);
+        }
+
+        private void MenuNuevaCarpeta_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Nos aseguramos de estar en una ruta válida
+                if (string.IsNullOrEmpty(txtRuta.Text)) return;
+
+                string rutaBase = txtRuta.Text;
+                string nombreCarpeta = "Nueva carpeta";
+                string rutaCompleta = System.IO.Path.Combine(rutaBase, nombreCarpeta);
+
+                // Lógica por si ya existe una "Nueva carpeta" (Crea "Nueva carpeta (1)", "(2)", etc.)
+                int contador = 1;
+                while (System.IO.Directory.Exists(rutaCompleta))
+                {
+                    nombreCarpeta = $"Nueva carpeta ({contador})";
+                    rutaCompleta = System.IO.Path.Combine(rutaBase, nombreCarpeta);
+                    contador++;
+                }
+
+                // Le pedimos a Windows que cree el folder físicamente
+                System.IO.Directory.CreateDirectory(rutaCompleta);
+
+                // Refrescamos tu explorador para que aparezca inmediatamente
+                CargarDirectorio(rutaBase);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No se pudo crear la carpeta: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // Dejamos los cascarones vacíos de las otras funciones para que no marque error.
+        // Las llenaremos en nuestro próximo paso.
+
+        // Función auxiliar para pedir el nuevo nombre al usuario
+        private string PedirNuevoNombre(string nombreActual)
+        {
+            // Creamos un formulario nuevo 100% desde el código
+            Form prompt = new Form()
+            {
+                Width = 400,
+                Height = 160,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = "Renombrar",
+                StartPosition = FormStartPosition.CenterScreen,
+                MaximizeBox = false
+            };
+
+            Label lblTexto = new Label() { Left = 20, Top = 20, Width = 340, Text = "Introduce el nuevo nombre:" };
+            TextBox txtInput = new TextBox() { Left = 20, Top = 50, Width = 340, Text = nombreActual };
+            Button btnAceptar = new Button() { Text = "Aceptar", Left = 260, Width = 100, Top = 80, DialogResult = DialogResult.OK };
+
+            prompt.Controls.Add(lblTexto);
+            prompt.Controls.Add(txtInput);
+            prompt.Controls.Add(btnAceptar);
+            prompt.AcceptButton = btnAceptar;
+
+            // Si el usuario da Aceptar, devolvemos lo que escribió, si no, devolvemos vacío
+            return prompt.ShowDialog() == DialogResult.OK ? txtInput.Text : "";
+        }
+
+        private void MenuRenombrar_Click(object sender, EventArgs e)
+        {
+            if (listViewArchivos.SelectedItems.Count == 0) return;
+
+            ListViewItem item = listViewArchivos.SelectedItems[0];
+            string nombreActual = item.Text;
+            string tipo = item.SubItems[1].Text;
+            string rutaActual = item.SubItems[2].Text;
+            string rutaBase = txtRuta.Text; // La carpeta donde estamos parados
+
+            // 1. Llamamos a nuestra ventanita para pedir el nombre
+            string nuevoNombre = PedirNuevoNombre(nombreActual);
+
+            // 2. Si el usuario escribió algo y es diferente al original, procedemos
+            if (!string.IsNullOrWhiteSpace(nuevoNombre) && nuevoNombre != nombreActual)
+            {
+                try
+                {
+                    // Construimos la nueva ruta completa
+                    string nuevaRuta = System.IO.Path.Combine(rutaBase, nuevoNombre);
+
+                    if (tipo == "Carpeta")
+                    {
+                        System.IO.Directory.Move(rutaActual, nuevaRuta);
+                    }
+                    else
+                    {
+                        System.IO.File.Move(rutaActual, nuevaRuta);
+                    }
+
+                    // Refrescamos visualmente
+                    CargarDirectorio(rutaBase);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("No se pudo renombrar: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+        private void MenuEliminar_Click(object sender, EventArgs e)
+        {
+            // Verificamos que haya algo seleccionado
+            if (listViewArchivos.SelectedItems.Count == 0) return;
+
+            // Obtenemos los datos del elemento a borrar
+            ListViewItem item = listViewArchivos.SelectedItems[0];
+            string nombreArchivo = item.Text;
+            string tipo = item.SubItems[1].Text;
+            string rutaActual = item.SubItems[2].Text;
+
+            // 1. EL SEGURO: Preguntamos antes de disparar
+            DialogResult confirmacion = MessageBox.Show(
+                $"¿Estás seguro de que deseas eliminar permanentemente '{nombreArchivo}'?\nEsta acción no se puede deshacer.",
+                "Confirmar Eliminación",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (confirmacion == DialogResult.Yes)
+            {
+                try
+                {
+                    // 2. Evaluamos si es carpeta o archivo para usar la herramienta correcta
+                    if (tipo == "Carpeta")
+                    {
+                        // El 'true' significa que borrará la carpeta y TODO su contenido recursivamente
+                        System.IO.Directory.Delete(rutaActual, true);
+                    }
+                    else
+                    {
+                        System.IO.File.Delete(rutaActual);
+                    }
+
+                    // 3. Refrescamos tu explorador para que el archivo desaparezca visualmente
+                    CargarDirectorio(txtRuta.Text);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("No se pudo eliminar: " + ex.Message, "Error de permisos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+        private void MenuPropiedades_Click(object sender, EventArgs e)
+        {
+            // Verificamos que haya algo seleccionado
+            if (listViewArchivos.SelectedItems.Count == 0) return;
+
+            ListViewItem item = listViewArchivos.SelectedItems[0];
+            string tipo = item.SubItems[1].Text;
+            string rutaActual = item.SubItems[2].Text;
+
+            try
+            {
+                string informacion = "";
+
+                if (tipo == "Carpeta")
+                {
+                    // Extraemos la metadata de la carpeta
+                    System.IO.DirectoryInfo infoCarpeta = new System.IO.DirectoryInfo(rutaActual);
+
+                    informacion += $"Nombre: {infoCarpeta.Name}\n";
+                    informacion += $"Tipo: Carpeta de archivos\n";
+                    informacion += $"Ubicación: {infoCarpeta.Parent?.FullName}\n\n";
+
+                    informacion += $"Fecha de creación: {infoCarpeta.CreationTime}\n";
+                    informacion += $"Última modificación: {infoCarpeta.LastWriteTime}\n";
+
+                    // Nota: No calculamos el tamaño de la carpeta aquí porque si es una carpeta 
+                    // de sistema muy pesada, congelaría tu programa mientras suma todos los bytes.
+                }
+                else
+                {
+                    // Extraemos la metadata del archivo
+                    System.IO.FileInfo infoArchivo = new System.IO.FileInfo(rutaActual);
+
+                    informacion += $"Nombre: {infoArchivo.Name}\n";
+                    informacion += $"Tipo: Archivo {infoArchivo.Extension.ToUpper()}\n";
+                    informacion += $"Ubicación: {infoArchivo.DirectoryName}\n\n";
+
+                    // Matemáticas simples para mostrar el tamaño en un formato legible
+                    double tamañoKB = infoArchivo.Length / 1024.0;
+                    double tamañoMB = tamañoKB / 1024.0;
+
+                    if (tamañoMB >= 1)
+                        informacion += $"Tamaño: {tamañoMB:F2} MB ({infoArchivo.Length:N0} bytes)\n\n";
+                    else
+                        informacion += $"Tamaño: {tamañoKB:F2} KB ({infoArchivo.Length:N0} bytes)\n\n";
+
+                    informacion += $"Fecha de creación: {infoArchivo.CreationTime}\n";
+                    informacion += $"Última modificación: {infoArchivo.LastWriteTime}\n";
+                }
+
+                // Mostramos el resumen en una ventana de diálogo nativa
+                MessageBox.Show(informacion, "Propiedades", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No se pudieron leer las propiedades: " + ex.Message, "Error de Lectura", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void MenuCortar_Click(object sender, EventArgs e)
+        {
+            if (listViewArchivos.SelectedItems.Count == 0) return;
+
+            // Guardamos la ruta y aseguramos que SÍ es cortar
+            rutaPortapapeles = listViewArchivos.SelectedItems[0].SubItems[2].Text;
+            esOperacionCortar = true;
+
+            // EFECTO VISUAL: Ponemos el texto del archivo en color gris para que sepas que está "Cortado"
+            listViewArchivos.SelectedItems[0].ForeColor = System.Drawing.Color.Gray;
+        }
+
+        private void MenuCopiar_Click(object sender, EventArgs e)
+        {
+            if (listViewArchivos.SelectedItems.Count == 0) return;
+
+            rutaPortapapeles = listViewArchivos.SelectedItems[0].SubItems[2].Text;
+            esOperacionCortar = false;
+
+            // Si estaba gris porque antes le dimos cortar, lo regresamos a la normalidad (negro)
+            listViewArchivos.SelectedItems[0].ForeColor = System.Drawing.Color.Black;
+        }
+
+        private void MenuPegar_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(rutaPortapapeles)) return;
+
+            try
+            {
+                string rutaDestinoActual = txtRuta.Text;
+                string nombreElemento = System.IO.Path.GetFileName(rutaPortapapeles);
+                string rutaFinal = System.IO.Path.Combine(rutaDestinoActual, nombreElemento);
+
+                if (rutaPortapapeles == rutaFinal)
+                {
+                    MessageBox.Show("El archivo ya está en esta carpeta.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                bool esCarpeta = System.IO.Directory.Exists(rutaPortapapeles);
+
+                if (esOperacionCortar) // --- SI FUE CORTAR (Mover) ---
+                {
+                    if (esCarpeta)
+                        System.IO.Directory.Move(rutaPortapapeles, rutaFinal);
+                    else
+                        System.IO.File.Move(rutaPortapapeles, rutaFinal);
+
+                    // Vaciamos la memoria obligatoriamente para no pegarlo 2 veces
+                    rutaPortapapeles = "";
+                    esOperacionCortar = false;
+                }
+                else // --- SI FUE COPIAR (Clonar) ---
+                {
+                    if (esCarpeta)
+                        CopiarCarpetaRecursiva(rutaPortapapeles, rutaFinal);
+                    else
+                        System.IO.File.Copy(rutaPortapapeles, rutaFinal, true);
+                }
+
+                // Refrescamos la vista
+                CargarDirectorio(rutaDestinoActual);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al transferir: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Función auxiliar maestra para copiar carpetas con todo su contenido
+        private void CopiarCarpetaRecursiva(string origen, string destino)
+        {
+            System.IO.Directory.CreateDirectory(destino);
+
+            // Copiamos todos los archivos de esta capa
+            foreach (string archivoPath in System.IO.Directory.GetFiles(origen))
+            {
+                string archivoDestino = System.IO.Path.Combine(destino, System.IO.Path.GetFileName(archivoPath));
+                System.IO.File.Copy(archivoPath, archivoDestino, true);
+            }
+
+            // Buscamos subcarpetas y nos llamamos a nosotros mismos (Recursividad)
+            foreach (string carpetaPath in System.IO.Directory.GetDirectories(origen))
+            {
+                string carpetaDestino = System.IO.Path.Combine(destino, System.IO.Path.GetFileName(carpetaPath));
+                CopiarCarpetaRecursiva(carpetaPath, carpetaDestino);
+            }
         }
 
         // Este es el método principal de esta fase
