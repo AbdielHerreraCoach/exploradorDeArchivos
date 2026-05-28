@@ -552,6 +552,16 @@ namespace exploradorDeArchivos
                             visorXml.Show();
                             break;
 
+                        // --- CASOS PARA IMÁGENES ---
+                        case ".jpg":
+                        case ".jpeg":
+                        case ".png":
+                        case ".bmp":
+                        case ".gif":
+                            FormVisorImagenes visorImg = new FormVisorImagenes(ruta);
+                            visorImg.Show(); // Lo abrimos como ventana independiente flotante
+                            break;
+
                         default:
                             try
                             {
