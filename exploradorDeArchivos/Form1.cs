@@ -561,6 +561,11 @@ namespace exploradorDeArchivos
                             FormVisorImagenes visorImg = new FormVisorImagenes(ruta);
                             visorImg.Show(); // Lo abrimos como ventana independiente flotante
                             break;
+                        case ".mp3":
+                        case ".wav":
+                            FormReproductor reproductor = new FormReproductor(ruta);
+                            reproductor.Show();
+                            break;
 
                         default:
                             try
